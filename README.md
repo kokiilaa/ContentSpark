@@ -1,4 +1,4 @@
-# Firebase Studio
+# Content Spark
 
 <a href="https://studio.firebase.google.com/import?url=">
   <picture>
