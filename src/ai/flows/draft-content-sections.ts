@@ -39,7 +39,7 @@ const prompt = ai.definePrompt({
   output: {schema: DraftContentSectionsOutputSchema},
   prompt: `You are an expert content writer, skilled at creating engaging and informative content.
 
-You are provided with an outline for a piece of content, and your task is to generate an initial draft for each section of the outline.
+Your task is to generate an initial draft for each section of the outline provided for the given topic.
 
 Topic: {{{topic}}}
 
@@ -48,23 +48,7 @@ Outline:
 - {{{this}}}
 {{/each}}
 
-Generate a draft for each section, providing a solid starting point for the user's writing.
-
-Output in JSON format:
-
-{
-  "sections": [
-    {{#each outline}}
-    {
-      "title": "{{this}}",
-      "draft": ""
-    }
-    {{#unless @last}},
-    {{/unless}}
-    {{/each}}
-  ]
-}
-`,
+For each section in the outline, write a compelling and well-written draft. Make sure to return a title and a draft for each section.`,
 });
 
 const draftContentSectionsFlow = ai.defineFlow(
@@ -75,24 +59,6 @@ const draftContentSectionsFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-
-    // Parse the generated content to ensure type safety and proper structure
-    let parsedOutput: DraftContentSectionsOutput;
-    try {
-      parsedOutput = JSON.parse(output!.text) as DraftContentSectionsOutput;
-
-      // Iterate through sections to generate content for each
-      for (const section of parsedOutput.sections) {
-        const sectionDraft = await ai.generate({
-          prompt: `Write a draft for the section titled '${section.title}' for the topic ${input.topic}`,
-        });
-        section.draft = sectionDraft.text;
-      }
-    } catch (error) {
-      console.error('Failed to parse or process content:', error);
-      throw new Error('Failed to parse or process the generated content.');
-    }
-
-    return parsedOutput;
+    return output!;
   }
 );
