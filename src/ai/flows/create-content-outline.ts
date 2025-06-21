@@ -29,7 +29,7 @@ const prompt = ai.definePrompt({
   name: 'createContentOutlinePrompt',
   input: {schema: CreateContentOutlineInputSchema},
   output: {schema: CreateContentOutlineOutputSchema},
-  prompt: `You are an expert content creator. Generate a detailed content outline with suggested sections and subtopics for the following content idea:\n\n{{contentIdea}}`,
+  prompt: `You are an expert content creator. Generate a detailed content outline with suggested sections and subtopics for the following content idea:\n\n{{contentIdea}}\n\nFormat the outline as a markdown list (using hyphens or asterisks for each item).`,
 });
 
 const createContentOutlineFlow = ai.defineFlow(

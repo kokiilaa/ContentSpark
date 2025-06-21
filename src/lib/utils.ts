@@ -12,7 +12,7 @@ export function parseOutline(outlineText: string): string[] {
   return outlineText
     .split('\n')
     .map(line => line.trim())
-    .filter(line => line.length > 0 && /^[*-]|\d+\./.test(line))
-    .map(line => line.replace(/^[*-]\s*/, '').replace(/^\d+\.\s*/, '').trim())
+    .filter(line => line.length > 0 && /^(?:[*-]|\d+\.)/.test(line))
+    .map(line => line.replace(/^(?:[*-]|\d+\.)\s*/, '').trim())
     .filter(line => line.length > 0);
 }
