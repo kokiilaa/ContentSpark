@@ -3,6 +3,7 @@
 import { generateContentIdeas } from '@/ai/flows/generate-content-ideas';
 import { createContentOutline } from '@/ai/flows/create-content-outline';
 import { draftContentSections } from '@/ai/flows/draft-content-sections';
+import { generateSocialMediaPosts } from '@/ai/flows/generate-social-media-posts';
 import { parseOutline } from '@/lib/utils';
 
 export async function generateIdeasAction(topic: string) {
@@ -51,5 +52,18 @@ export async function draftSectionsAction(outline: string, topic: string) {
   } catch (e: any) {
     console.error(e);
     return { error: e.message || 'Failed to draft sections.' };
+  }
+}
+
+export async function generateSocialPostsAction(content: string) {
+  try {
+    if (!content) {
+      return { error: 'Content cannot be empty.' };
+    }
+    const result = await generateSocialMediaPosts({ content });
+    return { data: result };
+  } catch (e: any) {
+    console.error(e);
+    return { error: e.message || 'Failed to generate social media posts.' };
   }
 }

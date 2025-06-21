@@ -2,11 +2,12 @@
 
 import * as React from 'react';
 import { useTransition } from 'react';
-import { Lightbulb, List, FileText, Loader2, Wand2 } from 'lucide-react';
+import { Lightbulb, List, FileText, Loader2, Wand2, Share2 } from 'lucide-react';
 import {
   createOutlineAction,
   draftSectionsAction,
   generateIdeasAction,
+  generateSocialPostsAction,
 } from '@/app/actions';
 import Header from '@/components/layout/header';
 import {
@@ -28,6 +29,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { DraftContentSectionsOutput } from '@/ai/flows/draft-content-sections';
+import type { GenerateSocialMediaPostsOutput } from '@/ai/flows/generate-social-media-posts';
 
 export default function Home() {
   const { toast } = useToast();
@@ -38,10 +40,13 @@ export default function Home() {
   const [outline, setOutline] = React.useState<string | null>(null);
   const [drafts, setDrafts] =
     React.useState<DraftContentSectionsOutput['sections'] | null>(null);
+  const [socialPosts, setSocialPosts] =
+    React.useState<GenerateSocialMediaPostsOutput['posts'] | null>(null);
 
   const [isGeneratingIdeas, startGeneratingIdeas] = useTransition();
   const [isGeneratingOutline, startGeneratingOutline] = useTransition();
   const [isGeneratingDrafts, startGeneratingDrafts] = useTransition();
+  const [isGeneratingSocial, startGeneratingSocial] = useTransition();
 
   const handleGenerateIdeas = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -58,6 +63,7 @@ export default function Home() {
       setSelectedIdea(null);
       setOutline(null);
       setDrafts(null);
+      setSocialPosts(null);
       const result = await generateIdeasAction(topic);
       if (result.error) {
         toast({
@@ -75,6 +81,7 @@ export default function Home() {
     setSelectedIdea(idea);
     setOutline(null);
     setDrafts(null);
+    setSocialPosts(null);
     startGeneratingOutline(async () => {
       const result = await createOutlineAction(idea);
       if (result.error) {
@@ -91,6 +98,7 @@ export default function Home() {
 
   const handleGenerateDrafts = async () => {
     if (!outline || !selectedIdea) return;
+    setSocialPosts(null);
     startGeneratingDrafts(async () => {
       const result = await draftSectionsAction(outline, selectedIdea);
       if (result.error) {
@@ -105,15 +113,34 @@ export default function Home() {
     });
   };
 
+  const handleGenerateSocialPosts = async () => {
+    if (!drafts) return;
+    startGeneratingSocial(async () => {
+      setSocialPosts(null);
+      const fullContent = drafts.map((d) => d.draft).join('\n\n');
+      const result = await generateSocialPostsAction(fullContent);
+      if (result.error) {
+        toast({
+          title: 'Error generating social posts',
+          description: result.error,
+          variant: 'destructive',
+        });
+      } else {
+        setSocialPosts(result.data?.posts ?? null);
+      }
+    });
+  };
+
   const IdeaIcon = isGeneratingIdeas ? Loader2 : Lightbulb;
   const OutlineIcon = isGeneratingOutline ? Loader2 : List;
   const DraftIcon = isGeneratingDrafts ? Loader2 : FileText;
+  const SocialIcon = isGeneratingSocial ? Loader2 : Share2;
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1 p-4 md:p-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Column 1: Idea Generation */}
           <Card>
             <CardHeader>
@@ -251,6 +278,61 @@ export default function Home() {
                       <AccordionTrigger>{section.title}</AccordionTrigger>
                       <AccordionContent className="prose prose-sm dark:prose-invert whitespace-pre-wrap">
                         {section.draft}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Column 4: Social Media Posts */}
+          <Card
+            className={cn(!drafts && 'opacity-50 pointer-events-none')}
+          >
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <SocialIcon
+                  className={cn(
+                    'h-6 w-6',
+                    isGeneratingSocial && 'animate-spin'
+                  )}
+                />
+                4. Generate Social Posts
+              </CardTitle>
+              <CardDescription>
+                Create social media posts from your generated content.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={handleGenerateSocialPosts}
+                className="w-full mb-6"
+                disabled={isGeneratingSocial || !drafts}
+              >
+                <Wand2 className="mr-2 h-4 w-4" />
+                {isGeneratingSocial ? 'Generating...' : 'Generate Social Posts'}
+              </Button>
+              {isGeneratingSocial && (
+                 <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-full" />
+                    </div>
+                 </div>
+              )}
+              {socialPosts && (
+                <Accordion type="single" collapsible className="w-full">
+                  {socialPosts.map((socialPost, index) => (
+                    <AccordionItem value={`item-${index}`} key={index}>
+                      <AccordionTrigger>{socialPost.platform}</AccordionTrigger>
+                      <AccordionContent className="prose prose-sm dark:prose-invert whitespace-pre-wrap">
+                        {socialPost.post}
                       </AccordionContent>
                     </AccordionItem>
                   ))}

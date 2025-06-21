@@ -4,3 +4,4 @@ config();
 import '@/ai/flows/create-content-outline.ts';
 import '@/ai/flows/draft-content-sections.ts';
 import '@/ai/flows/generate-content-ideas.ts';
+import '@/ai/flows/generate-social-media-posts.ts';
