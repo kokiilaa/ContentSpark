@@ -1,1 +1,6 @@
-// Flows will be imported for their side effects in this file.
+import { config } from 'dotenv';
+config();
+
+import '@/ai/flows/create-content-outline.ts';
+import '@/ai/flows/draft-content-sections.ts';
+import '@/ai/flows/generate-content-ideas.ts';
